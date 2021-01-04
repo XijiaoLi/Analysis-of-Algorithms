@@ -1,0 +1,169 @@
+\documentclass[twoside]{homework}
+\usepackage{graphicx}
+\studname{Hongmin Zhu (hz2637)}
+\studmail{hz2637@columbia.edu}
+\coursename{CSOR W4231: Analysis of Algorithms (sec. 001)}
+\hwNo{3}
+
+\begin{document}
+\maketitle
+
+\section*{Problem 1}
+\textbf{Algorithm:}
+\\
+\\\textit{fuzzy-sort} can be implemented by following the general structure of \textit{quick-sort}, which is quick-sorting the left endpoints of each intervals. And this general case will take worst-case running time of $\Theta(n\log_{}{n})$. However, we can improve this by considering the fact that overlapping intervals do not require sorting. Because in such situations, we can always choose ${c_{i}, c_{j}}$ from two overlapping intervals that satisfy $c_{i} <= c_{j}$. If all the intervals overlap, which is the best case, the running time will be $\Theta(n)$.
+\\
+\\So, instead of partitioning the inputs into 2 parts as the \textit{quick-sort}, we can partition input intervals into 3 parts: \textit{left}, \textit{middle}, \textit{right}. We first pick a random pivot interval as the region to split the inputs. Intervals that are smaller than the pivot will be swap into \textit{left}, intervals that are bigger than pivot will be swap into \textit{right}, and intervals inside \textit{middle} overlap, which we consider as the same. For example: two intervals $\textbf{\textit{i}}  ([a_{i}, b_{i}])$, $\textbf{\textit{j}} ([a_{j}, b_{j}])$, there are three situations:
+\\
+\\(1) $\textbf{\textit{j}} < \textbf{\textit{i}}$, if $b_{j} < a_{i}$
+\\(2) $\textbf{\textit{j}} > \textbf{\textit{i}}$, if $a_{j} > b_{i}$
+\\(3) $\textbf{\textit{j}} = \textbf{\textit{i}}$, others
+\\
+\\Since intervals inside \textit{middle} are the same, we only need to sort \textit{left} and \textit{right}, the algorithm can be more efficient when there are more intervals in the inputs.So we modify \textit{quick-sort} to fit this problem by changing {\scshape Partition} to return an interval.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\
+\\
+\\{\scshape Partition} (\textit{A}, \textit{B}, \textit{p}, \textit{r})
+\\\indent 1 \quad \textit{y} $\leftarrow$ {\scshape Random}(\textit{p}, \textit{r})
+\\\indent 2 \quad exchange \textit{A[y]} $\leftrightarrow$ \textit{A[r]}
+\\\indent 3 \quad exchange \textit{B[y]} $\leftrightarrow$ \textit{B[r]}
+\\\indent 4 \quad \textit{a} $\leftarrow$ \textit{A[r]}
+\\\indent 5 \quad \textit{b} $\leftarrow$ \textit{B[r]}
+\\\indent 6 \quad \textit{i} $\leftarrow$ \textit{p}-1
+\\\indent 7 \quad \textit{j} $\leftarrow$ \textit{r}
+\\\indent 8 \quad \textit{k} $\leftarrow$ \textit{p}
+\\\indent 9 \quad while $\textit{k} < \textit{j}$ and $\textit{k} < \textit{r}$ do
+\\\indent 10\qquad if $\textit{B[k]} < a$ do
+\\\indent 11\qquad\quad \textit{i} $\leftarrow$ \textit{i}+1
+\\\indent 12\qquad\quad exchange \textit{A[i]} $\leftrightarrow$ \textit{A[k]}
+\\\indent 13\qquad\quad exchange \textit{B[i]} $\leftrightarrow$ \textit{B[k]}
+\\\indent 14\qquad\quad \textit{k} $\leftarrow$ \textit{k}+1
+\\\indent 15\qquad if $\textit{A[k]} > b$ do
+\\\indent 16\qquad\quad \textit{j} $\leftarrow$ \textit{j}-1
+\\\indent 17\qquad\quad exchange \textit{A[j]} $\leftrightarrow$ \textit{A[k]}
+\\\indent 18\qquad\quad exchange \textit{B[j]} $\leftrightarrow$ \textit{B[k]}
+\\\indent 19\qquad else do
+\\\indent 20\qquad\quad \textit{a} $\leftarrow$ \textit{max(A[k], a)}
+\\\indent 21\qquad\quad \textit{b} $\leftarrow$ \textit{min(B[k], b)}
+\\\indent 22\qquad\quad \textit{k} $\leftarrow$ \textit{k}+1
+\\\indent 23\quad exchange \textit{A[i+1]} $\leftrightarrow$ \textit{A[r]}
+\\\indent 24\quad exchange \textit{B[i+1]} $\leftrightarrow$ \textit{B[r]}
+\\\indent 25\quad return \textit{i}+1, \textit{j}
+\\
+\\{\scshape Fuzzy-sort} (\textit{A}, \textit{B}, \textit{p}, \textit{r})
+\\\indent 1 \quad if $\textit{p} < \textit{r}$ do
+\\\indent 2 \quad\quad \textit{left, right} $\leftarrow$ {\scshape Partition}(\textit{A}, \textit{B}, \textit{p}, \textit{r})
+\\\indent 3 \quad\quad {\scshape Fuzzy-sort}(\textit{A}, \textit{B}, \textit{p}, \textit{left})
+\\\indent 4 \quad\quad {\scshape Fuzzy-sort}(\textit{A}, \textit{B}, \textit{right}, \textit{r})
+\\
+\\\textbf{Analysis:}
+\\
+\\On lines 1 through 3 of {\scshape Partition}, we select a random pivot interval as the initial region of overlap \textbf{\textit{middle}} ([\textit{a, b}]). On lines 4 through 22, we loop over all the inputs, except the one we set as the initial region. At each iteration, we see what is the relationship between current interval with the region \textbf{\textit{middle}}, if the current interval is smaller than region \textbf{\textit{middle}}, we put it into \textbf{\textit{left}}, if the current interval is bigger than region \textbf{\textit{middle}}, we put it into \textbf{\textit{right}}, if it overlap \textbf{\textit{middle}}, we update region of overlap to $[\textit{a, b}] = [\textit{a, b}] \cap [a_{k}, b_{k}]$. So, {\scshape Partition} will always divide inputs into three regions. The {\scshape Fuzzy-Sort} part is identical to \textit{quick-sort}, after we get the \textit{middle} region, we will recursively call {\scshape Fuzzy-Sort} on the left part and right part.
+\\
+\\\textbf{Running Time:}
+\\
+\\The worst case will be there is no overlap between intervals, which means the \textit{middle} region will only contains one interval. And since the \textit{middle} region is chosen randomly, recursion runs on \textit{left} and \textit{right}, which have the size of $\lfloor$$\frac{n}{2}\rfloor$, and {\scshape Partition} has the worst-case running time of $\Theta(n)$, so the recurrence for the running time is \[T(n) \leq 2T(n/2) + \Theta(n)\] which can be solved to $\Theta(nlog_{}{n})$. If in the best case, the intervals all overlap at $c_{*}$, every interval will be within \textit{middle}, \textit{left} and \textit{right} will be empty. As a result, there will be no recursion, the running time will then be $\Theta(n)$.
+\section*{Problem 2}
+\textbf{Algorithm:}
+\\
+\\Use \textit{radix-sort} to sort the strings from most significant digits to least significant digits. In order to achieve $O_{}{(m)}$ running time, we should sort each digit at most once. We first use \textit{counting-sort} to sort the most significant digit, we will then have strings with first letter 'a' to strings with first letter 'z', which divides all strings into several blocks. Then for each block, we recursively run \textit{counting-sort} on the second digit of current block. Because strings in each block have the same first letter, so the overall ordering will not be changed. After second digit is sorted, there will be more blocks of second digit from 'a' to 'z', we then recursively run \textit{counting-sort} on the third digit of each block of second digit. So the idea is to combine \textit{recursion} and \textit{counting-sort}.
+\\
+\\Because the length of strings are different, so when sorting a specific digit, some strings might have letters in that digit, some don't. So to handle this, we will treat those empty digits as the smallest, which means they will come first in sorting.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape Sort} (\textit{A}, \textit{L}, \textit{p}, \textit{r}, \textit{d})
+\\\indent 1 \quad if \textit{p}+1 $\leq$ r 
+\\\indent 2 \qquad for \textit{i} $\leftarrow$ 0 to 26
+\\\indent 3 \qquad\quad do $C[i] \leftarrow$ 0
+\\\indent 4 \qquad for \textit{i} $\leftarrow$ \textit{p} to \textit{r}
+\\\indent 5 \qquad\quad if $L[i] < d$
+\\\indent 6 \qquad\qquad do $C[0] \leftarrow C[0] + 1$
+\\\indent 7 \qquad\quad do $C[A[i].charAt(d)-{'a'}+1] \leftarrow C[A[i].charAt(d)-{'a'}+1]+1$
+\\\indent 8 \qquad for \textit{i} $\leftarrow$ 1 to 26
+\\\indent 9 \qquad\quad do $C[i] \leftarrow C[i]+C[i-1]$
+\\\indent 10\qquad for \textit{i} $\leftarrow$ \textit{p} to \textit{r}
+\\\indent 11\qquad\quad if $L[i] < d$
+\\\indent 12\qquad\qquad $temp[C[0]++] = A[i]$
+\\\indent 13\qquad\quad $temp[C[A[i].charAt(d)-{'a'}+1]++] = A[i]$
+\\\indent 14\qquad for \textit{i} $\leftarrow$ \textit{p} to \textit{r}
+\\\indent 15\qquad\quad  $A[i]=temp[i+p]$
+\\\indent 16\qquad for \textit{i} $\leftarrow$ 1 to 26
+\\\indent 17\qquad\quad {\scshape Sort} (\textit{A}, \textit{L}, $p+C[i]$, $p+C[i+1]-1$, \textit{d}+1)
+\\
+\\\textbf{Analysis:}
+\\
+\\The algorithm is based on \textit{counting-sort} code, instead of sorting from the least digit as the example in the class, we sort strings from most significant digit. After sorting each digit, the strings with the same first letter will be grouped together, each group, or we can say "bucket" corresponds to letter 'a' to 'z'. In each bucket, the algorithm recursively sort the next digit, and again, strings will be grouped into buckets with same digit. So, using this method, we can make sure that each character of strings is \textit{counting-sorted} only once, and since \textit{m} is the sum of the length of strings, the total running time is $O_{}{(m)}$.
+\section*{Problem 3}
+\textbf{(a)} \textit{A} is a sorted array with distinct entries, and since \textit{binary-search} works well on sorted arrays, we start with this searching algorithm and see its decision tree. Suppose the array contains 5 entries, below is the decision tree of \textit{binary-search}:
+\\\includegraphics[scale=0.5]{4-1.jpg}
+\\from the decision tree, we can know that each comparison will have three outputs $<, =, >$, and some of the outputs are duplicated, i.e. the "no" output appears at many different leaves. So in total, there are 6 unique leaves (5 keys and no if there is no match). So, for any \textit{comparison-based} search algorithm searching an item \textit{x} in \textit{A}, we can know:
+\\
+\\(1) there will be $n+1$ distinct comparison outputs in the worst case.
+\\(2) the decision tree will have at least $n+1$ leaves.
+\\(3) each node will have three children $(<, =, >)$
+\\
+\\So since a ternary tree of height \textit{h} will have at most $3^{h}$ leaves, and we have \textit{n} entries in \textit{A}, we know that the height of corresponding decision tree will have height at least $log_{3}{n}$, and $log_{3}{n} \in \Omega_{}{(log_{}{n})}$, we can say that for any \textit{comparison-based} search algorithm, we have a lower bound of $\Omega_{}{(log_{}{n})}$.
+\\
+\\\textbf{(b)} if the output is just "yes" or "no", then the decision tree of \textit{comparison-based} searching algorithm on array \textit{A} will have
+\\
+\\(1) $n+1$ distinct leaves ("yes" for all keys and a "no")
+\\(2) each node will have two children $(=, \neq)$
+\\
+\\So, the height of corresponding decision tree will have height at least $log_{2}{n}$, and $log_{2}{n} \in \Omega_{}{(log_{}{n})}$, we can say that for any \textit{comparison-based} search algorithm that outputs "yes" or "no", we have a lower bound of $\Omega_{}{(log_{}{n})}$.
+\section*{Problem 4}
+\textbf{Algorithm:}
+\\We use dynamic programming to solve this problem. Pre-processing steps are below:
+\\
+\\(1) add 0 to the front of array \textit{L} and \textit{n} to the end of array \textit{L}
+\\(2) sort array \textit{L} in ascending order
+\\
+\\Now, we can define the problem as follows: suppose $L[i...j]$ indicates indexes \textit{i} from \textit{j} of array \textit{L}. We define sub-problem $(i, j)$ to be the best break of $String[L[i+1], L[j]]$, and for this sub-problem, we care about how to break $L[i+1, j-1]$. And we say the break point of $(i, j)$ is $k, i < k < j$, we can divide problem $(i, j)$ to two sub-problems $(i, k)$ and $(k, j)$. Therefore we can know the equation:
+\begin{equation*}
+	cost[i,j]=\left\{
+	\begin{array}{rcl}
+		0 & & {j-i\leq1}\\
+		\min_{i<k<j} {cost[i,k]+cost[k,j]+(L[j]-L[i])} & & {j-i>1}\\
+	\end{array} \right.
+\end{equation*}
+To be more specific, if $j-i\leq1$, the string is $String[L[i+1], [j]]$, if the length is 1, then we can't break it, so the cost is 0; if the length is two, there is no break point from array \textit{L} inside string, so we don't break it, the cost is 0. if $j-i>1$, the length of string is more than 1, so there could be break points inside the string, the total cost now is $L[j] - L[i]$, which is the cost to break this string, plus \textit{minimum cost to break sub-strings}. So we can build to tables to keep track the cost and the break points.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape Cost} (\textit{L}, \textit{n}, \textit{m})
+\\\indent 1 \quad add 0 to the front of \textit{L} and \textit{n} to the end of \textit{L} 
+\\\indent 2 \quad \textit{sort} array \textit{L} in ascending order
+\\\indent 3 \quad create 2D matrix $cost[m][m]$ and $points[m][m]$, both start from 1
+\\
+\\\indent \qquad // initialize base cases
+\\\indent 4 \quad for $i \leftarrow 1$ to $m-1$
+\\\indent 5 \qquad do $cost[i][i]=0$
+\\\indent 6 \qquad do $cost[i][i+1]=0$
+\\\indent 7 \quad $cost[m][m]=0$
+\\
+\\\indent \qquad // general cases
+\\\indent 8 \quad for $len \leftarrow 3$ to $m$
+\\\indent 9 \qquad for $i \leftarrow 1$ to $m-len+1$
+\\\indent 10\qquad\quad $j=i+len-1$
+\\\indent 11\qquad\quad $cost[i][j]=\infty$
+\\\indent 12\qquad\quad for $k \leftarrow i+1$ to $j-1$
+\\\indent 13\qquad\qquad if $cost[i][k]+cost[k][j] < cost[i][j]$
+\\\indent 14\qquad\qquad\quad $cost[i][j] \leftarrow cost[i][k]+cost[k][j]$
+\\\indent 15\qquad\qquad\quad $points[i][j] \leftarrow k$
+\\\indent 16\qquad\quad $cost[i][j] \leftarrow cost[i][j]+L[j]-L[i]$
+\\
+\\{\scshape Points} (\textit{L}, \textit{P}, \textit{points}, \textit{i}, \textit{j})
+\\\indent 1 \quad if $j-i>1$
+\\\indent 2 \qquad $point \leftarrow points[i][j]$
+\\\indent 3 \qquad add \textit{point} to array \textit{P}
+\\\indent 4 \qquad {\scshape Points} (\textit{L}, \textit{P}, \textit{points}, \textit{i}, \textit{k})
+\\\indent 5 \qquad {\scshape Points} (\textit{L}, \textit{P}, \textit{points}, \textit{k}, \textit{j})
+\\
+\\So, minimum cost is $cost[1][m]$, and sequence of breaks are stored in array \textit{P}.
+\\
+\\\textbf{Analysis:}
+\\
+\\The algorithm {\scshape Cost} above uses three \textit{for-loop}, in the worst-case, each \textit{for-loop} will take $\theta_{}{(m)}$ time, so the overall running time will be $\theta_{}{(m^{3})}$. The algorithm {\scshape Points} outputs the sequence of break points, its running time is $\theta_{}{(m)}$.
+\end{document} 

@@ -1,0 +1,263 @@
+\documentclass[twoside]{homework}
+\usepackage{graphicx}
+\studname{Hongmin Zhu (hz2637)}
+\studmail{hz2637@columbia.edu}
+\coursename{CSOR W4231: Analysis of Algorithms (sec. 001)}
+\hwNo{5}
+
+\begin{document}
+\maketitle
+
+\section*{Problem 1}
+\textbf{Algorithm:}
+\\
+\\Apply \textit{Breadth First Search} algorithm to find a path that connects all the nodes with a connected component of the graph \textit{G}, and since nodes from the same connected component are reachable from each other, the output \textit{new list} is the same for every node within that connected component. And the graph \textit{G} may contain many connected components, so outside the \textit{Breadth First Search}, there should be a \textit{for-loop} to go over every possible start point for each connected component.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape getLists} (\textit{G})
+\\\indent 1 \quad for each $n \in G$
+\\\indent 2 \qquad $color[n] \leftarrow$ white
+\\\indent 3 \quad $lists \leftarrow null$
+\\\indent 4 \quad for $i \leftarrow 1$ to $n$
+\\\indent 5 \qquad $newlist \leftarrow null$
+\\\indent 6 \qquad if $color[i] ==$ white or $newlist == null$ then
+\\\indent 7 \qquad \quad $Q \leftarrow {i}$
+\\\indent 8 \qquad \quad $color[i] \leftarrow$ black
+\\\indent 9 \qquad \quad while $Q \neq \emptyset$ do
+\\\indent 10\qquad \qquad $u \leftarrow$ Dequeue(Q)
+\\\indent 11\qquad \qquad $newlist \leftarrow$ add node $u$
+\\\indent 12\qquad \qquad for each $v \in Adj[u]$ do
+\\\indent 13\qquad \qquad \quad if $color[v] ==$ white then
+\\\indent 14\qquad \qquad \qquad Enqueue$(Q, v)$
+\\\indent 15\qquad \quad for each $u$ in $newlist$ do
+\\\indent 16\qquad \qquad $lists[u] \leftarrow newlist$
+\\\indent 17\quad return $lists$
+\\
+\\\textbf{Analysis:}
+\\
+\\\textit{Correctness}. For every starting point we find, we use \textit{Breadth First Search} to find all the nodes within this connected component, and we add these nodes to a list, since every node within the connected component is reachable from each other, output new list for every node is the same. So after the \textit{Breadth First Search} is over, we will go over the nodes in the list, and generate output new list for every one.
+\\
+\\To prevent duplication, we use $color array$ to label each node, if the node is undiscovered, the color will be white, otherwise, the node will be black. Also, in the outer \textit{for-loop}, we use this $color array$ too, to skip the discovered node, and run \textit{Breadth First Search} only for the starting point for a new connected component.
+\\
+\\\textit{Time Complexity}. The first \textit{for-loop} takes $O_{}{(n)}$ time to initial the $color array$, which is the same for every possible situation.
+\\
+\\The worst case is the nodes in the graph $G$ are all connected to each other, the running time for \textit{Breadth First Search} is $O_{}{(n+e)}$, the \textit{for-loop} for creating output lists takes $O_{}{(n)}$, and since the nodes are all connected to each other, there is only one starting point for the outer \textit{for-loop}, so the running time is actually the time to do one \textit{Breadth First Search}. The worst case running time is $O_{}{(n+e)}$.
+\\
+\\The best case is the nodes in the graph $G$ are all disconnected to each other, so the running time to do \textit{Breadth First Search} is constant, which is also the running time for creating output lists, the entire \textit{for-loop} takes $\Theta_{}{(n)}$ time, the number of edge here is 0, so the running time is equivalent to $\Theta_{}{(n+e)}$, which means the lower bound for this algorithm is $\Omega_{}{(n+e)}$
+\\
+\\So, in summary, the algorithm has the optimal running time, which is $\Theta_{}{(n+e)}$.
+\section*{Problem 2}
+\textbf{(a)}
+\\
+\\Proof is done by contradiction. Suppose graph $G$ is bipartite and it has a cycle of odd length. First, let's say the odd cycle connects the vertices named $u_{1},u_{2},...,u_{k}$, and $k$ is an odd number. And we know that graph $G$ is bipartite, the vertices from $G$ belong to 2 sides, and there is no edge inside these 2 sides. Therefore, vertices from the odd cycle can also be split into 2 sides, let's say vertices $u_{1},u_{3},u_{5}...,u_{k}$ belongs to one side, and $u_{2},u_{4},...,u_{k-1}$ belong to the other side. In order to form a cycle, vertices $u_{1}$ and $u_{k}$ must be connected, which means there is an edge in one side of vertices connecting $u_{1}$ and $u_{k}$, which contradicts the property of bipartite of having no edges in each side of the vertices. So our assumption of graph $G$ being bipartite and having a cycle of odd length is not correct. We can then say if a graph contains a cycle of odd length then it is not bipartite.
+\\
+\\\textbf{(b)}
+\\
+\\\textbf{Algorithm:}
+\\
+\\Apply a modified BFS algorithm to identify if the graph is bipartite. The algorithm will color each node the different color from its parent, so in the \textit{for-loop} of coloring adjacent nodes inside BFS, if there is a node that has the same color as its parent, we know that the graph is not bipartite, then we run a DFS algorithm and maintain a stack to get the cycle, otherwise, we will add nodes to its side $(N_{1}$ or $N_{2})$.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape isBipartite} (\textit{G, s})
+\\\indent 1 \quad for each $n \in G$
+\\\indent 2 \qquad $color[n] \leftarrow$ gray
+\\\indent 3 \quad $N_{1},N_{2} \leftarrow null$
+\\\indent 4 \quad $flag \leftarrow$ true
+\\\indent 5 \quad $Q \leftarrow {s}$
+\\\indent 6 \quad $color[s] \leftarrow$ white
+\\\indent 7 \quad $N_{1} \leftarrow$ add $s$
+\\\indent 8 \quad while $Q \neq \emptyset$ do
+\\\indent 9 \qquad $u \leftarrow$ Dequeue(Q)
+\\\indent 10\qquad for each $v \in Adj[u]$ do
+\\\indent 11\qquad \quad if $color[v] ==$ gray
+\\\indent 12\qquad \qquad if $color[u] ==$ white then
+\\\indent 13\qquad \qquad \quad $color[v] ==$ black
+\\\indent 14\qquad \qquad \quad $N_{2} \leftarrow$ add $v$
+\\\indent 15\qquad \qquad else
+\\\indent 16\qquad \qquad \quad $color[v] ==$ white
+\\\indent 17\qquad \qquad \quad $N_{1} \leftarrow$ add $v$
+\\\indent 18\qquad \quad else
+\\\indent 19\qquad \qquad if $color[v] == color[u]$ then
+\\\indent 20\qquad \qquad \quad $flag \leftarrow$ false
+\\\indent 21\qquad \qquad \quad break
+\\\indent 22\quad if $flag ==$ false then
+\\\indent 23\qquad for each $n \in G$
+\\\indent 24\qquad \quad$color[n] \leftarrow$ white
+\\\indent 25\qquad \quad$parent[n] \leftarrow$ NIL
+\\\indent 26\qquad \quad$stack \leftarrow null$
+\\\indent 27\qquad \quad $continue \leftarrow$ true
+\\\indent 28\qquad \quad {\scshape getCycleDFS} ($G, stack, continue, s$)
+\\\indent 29\qquad \quad for each $n \in stack$
+\\\indent 30\qquad \qquad $cycle \leftarrow n$
+\\\indent 31\qquad \qquad return $cycle$
+\\\indent 32\quad else
+\\\indent 33\qquad return $N_{1},N_{2}$
+\\
+\\{\scshape getCycleDFS} ($G, stack, continue, u$)
+\\\indent 1 \quad if $continue ==$ false
+\\\indent 2 \qquad return
+\\\indent 3 \quad $color[u] \leftarrow$ gray
+\\\indent 4 \quad $stack \leftarrow u$
+\\\indent 5 \quad for each $v \in Adj[u]$ do
+\\\indent 6 \qquad if $color[v] ==$ white then
+\\\indent 7 \qquad \quad $parent[v] \leftarrow u$
+\\\indent 8 \qquad \quad $stack \leftarrow v$
+\\\indent 9 \qquad \quad $color[v] \leftarrow$ gray
+\\\indent 10\qquad \quad {\scshape getCycleDFS} ($G, stack, continue, v$)
+\\\indent 11\qquad else if $color[v] ==$ gray then
+\\\indent 12\qquad \quad if $parent[v] \neq u$ then
+\\\indent 13\qquad \qquad $continue \leftarrow$ false \qquad \qquad// we find a cycle
+\\\indent 14\quad $color[u] \leftarrow$ black 
+\\
+\\\textbf{Analysis:}
+\\
+\\\textit{Correctness}. We apply a modified BFS to check if the graph is bipartite, and along the way, we add nodes to two different sides $(N_{1}$ and $N_{2})$. The nodes in $N_{1}$ will be colored white, and nodes in $N_{2}$ will be colored black. As all of the neighbors of node $u$ should have the opposite color as $u$, so if we find a neighbor $v$ with the same color as $u$, we know find a cycle.
+\\We apply a modified DFS to output the cycle, we maintain a stack to keep all nodes that are visited but not done with processing (color gray), and if at some point of the recursion, we find a node $v$ of $u$ that has the color of gray and is not $u$ itself, we will stop the recursion. The nodes we have now in the stack are nodes in the cycle.
+\\
+\\\textit{Time Complexity}. The dominant parts of the algorithm are BFS and DFS, and they both have the running time of $O_{}{(n+e)}$, so the total running time of this algorithm is $O_{}{(n+e)}$.
+\section*{Problem 3}
+\textbf{(a)}
+\\
+\\\textbf{Algorithm:}
+\\
+\\We can construct a directed graph $G$ from set $V$ and set $C$, the variables in the set $V$ are nodes in the directed graph and non-strict inequalities in the set $C$ are the edges in the directed graph. The inequality $x_{1} \leq x_{3}$ can be interpreted as the directed edge from $x_{3}$ to $x_{1}$. We will compute the strongly connected components of this graph, and group all of the variables in a strongly connected components together to one node, which can be done in a map. The reason behind this is all nodes in a strongly connected components with relation $\leq$ should have the same value.
+\\
+\\Once we have grouped all strongly connected components, we construct a new graph of the components. This time, we see each single node that are not grouped in the last step as a component too. So an edge should connect component A and component B if there are variables $x_{i}\in A,x_{j} \in B$ that $x_{i} \leq x_{j}$.
+\\
+\\We run a DFS search on this new graph again. The inequalities are inconsistent if there is still a cycle in the graph, otherwise, the inequalities are consistent.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape isConsistent} (\textit{G})
+\\\indent 1 \quad call DFS(G) to compute finishing times $f[u]$ for each vertex u
+\\\indent 2 \quad $G^{T} \leftarrow$ traverse all adjacency lists and reverse $G$
+\\\indent 3 \quad for each $u \in G^{T}.V$
+\\\indent 4 \qquad $u.color =$ White
+\\\indent 5 \qquad $u.\pi =$ NIL
+\\\indent 6 \quad $time =$ 0
+\\\indent 7 \quad for each $u \in G^{T}.V$ in order of decreasing $f[u]$
+\\\indent 8 \qquad if $color[u]==$ white then
+\\\indent 9 \qquad \quad $map \leftarrow (u,u)$ \qquad // key is each original node, value is grouped node
+\\\indent 10\qquad \quad {\scshape Modified-DFS-Visit} (\textit{$G^{T}$,u,map})
+\\\indent 11\quad construct a new graph $G^{\prime}=(V^{\prime},E^{\prime})$. The nodes are each grouped component stored in $map$, go over each inequality and add an edge to component A and component B if there are variables $x_{i}\in A,x_{j} \in B$ that $x_{i} \leq x_{j}$.
+\\\indent 12\quad call DFS($G^{\prime}$) to check if there are cycles
+\\\indent 13\quad return $false$ if a cycle is detected
+\\\indent 14\quad return $true$ if no cycle is detected
+\\
+\\{\scshape Modified-DFS-Visit} (\textit{G,u,map})
+\\\indent 1 \quad $color[u] \leftarrow$ Gray
+\\\indent 2 \quad $time \leftarrow time+1$
+\\\indent 3 \quad $d[u] \leftarrow time$
+\\\indent 4 \quad for each $v \in Adj[u]$ do
+\\\indent 5 \qquad if $color[v] ==$ White then
+\\\indent 6 \qquad \quad $\pi[v] \leftarrow u$
+\\\indent 7 \qquad \quad $map \leftarrow (v,u)$
+\\\indent 8 \qquad \quad {\scshape Modified-DFS-Visit} (\textit{G,v,map})
+\\\indent 9 \quad $color[u] \leftarrow$ Black
+\\\indent 10\quad $f[u]\leftarrow time\leftarrow time+1$
+\\
+\\\textbf{Analysis:}
+\\
+\\\textit{Correctness}. The first part of the algorithm is to compute the strongly connected components, then we group the strongly connected components to a single node and construct a new graph. If there is a cycle in the new graph, then it must contain a strict inequality otherwise the nodes would have been merged to a single node. Since if there is a cycle, a variable will be strictly smaller than itself along the results of inequalities.
+\\
+\\\textit{Time Complexity}. For finding the strongly connected component part, the DFS takes $O_{}{(n+m)}$ time, traversing the lists to reverse graph takes $O_{}{(n+m)}$ time, so the finding strongly connected components takes $O_{}{(n+m)}$ time. For the second part of checking consistency, we also call a DFS search whose worst-case running time is $O_{}{(n+m)}$. Therefore the algorithm has running time of $O_{}{(n+m)}$.
+\\
+\\\textbf{(b)}
+\\
+\\\textbf{Algorithm:}
+\\
+\\After the algorithm in (a), we have a graph $G^{\prime}$. In the final step of the algorithm, we ran a DFS search, so we assume that $G^{\prime}$ is in the form of adjacency list and the list is ordered by topological order. Then we go over this graph, and assign values to each component. The value is decided based on its neighbor's value.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape getSolution} (\textit{G})
+\\\indent 1 \quad $value \leftarrow$ an array initialized to all 1, the size equals to the size of the components.
+\\\indent 2 \quad for $i \leftarrow$ 1 to size of $G.V$
+\\\indent 3 \qquad for $j \leftarrow Adj[i]$ do
+\\\indent 4 \qquad \quad if $i<j$ then
+\\\indent 5 \qquad \qquad $value[j]=max(value[j],value[i]+1)$
+\\\indent 6 \qquad \quad else then
+\\\indent 7 \qquad \qquad $value[j]=max(value[j],value[i])$
+\\\indent 8 \quad for component $i \in G$
+\\\indent 9 \qquad assign $value[i]$ to all variables of component $i$
+\\
+\\\textbf{Analysis:}
+\\
+\\\textit{Correctness}. If the component has no incoming edge, then it should have value of 1. For inequality $i<j$ means component $j$ must be at least one more than component $i$. While $i\leq j$ means the component $j$ must be at least as large as component $i$.
+\\
+\\\textit{Time Complexity}. Creating $value$ array takes $O_{}{(n)}$ time, lines 2-7 traverse the graph, so it takes $O_{}{(n+m)}$ time. The final step of assigning values to each variable takes $O_{}{(n)}$ time. So in total, the algorithm has the running time of $O_{}{(n+m)}$.
+\section*{Problem 4}
+\textbf{(a)}
+\\
+\\Proof is done by contradiction. Assume there are two minimum spanning tree of the graph $G$, $MST_{1},MST_{2}$. These two MSTs have the same nodes but the edges are not completely the same. Let's say $MST_{1}$ has a set of edges $E_{1}$ and $MST_{2}$ has a set of edges $E_{2}$. Since $E_{1}, E_{2}$ are not completely the same, there must be an edge $e_{1}$ that belongs to $E_{1}$ but not $E_{2}$. If we add this $e_{1}$ to $MST_{2}$, there will be a cycle inside $MST_{2}$. The largest edge $e^{\prime}$ of this cycle can not be inside $MST_{2}$ since $MST_{2}$ is the minimum spanning tree. There are two cases: 1) $e^{\prime} = e_{1}$, which means the largest edge of this cycle is in $MST_{1}$. 2) $e^{\prime} \neq e_{1}$, which means the largest edge of this cycle is in $MST_{2}$. Both cases contradict the fact that $MST_{1}$ and $MST_{2}$ are minimum spanning trees and the largest edge of the cycle should not be inside the minimum spanning tree. Therefore, we can say the graph has a unique minimum spanning tree.
+\\
+\\\textbf{(b)}
+\\
+\\Assume $T$ is a minimum spanning tree of graph $G$ that does not contain edge $(u,v)$. Since $T$ is a spanning tree, there must be a an edge $(x,y)$ connecting the two partitions. We take $(x,y)$ out of the tree and add the edge $(u,v)$. Since $(u,v)$ is one of the minimum-weight edges across the partition, there will be two cases: 1) if edge $w(u,v)==w(x,y)$, then the new tree $T^{\prime}$ containing edge $(u,v)$ is also a minimum spanning tree. 2) if edge $w(u,v)<w(x,y)$, then our assumption is not correct, the new tree containing edge $(u,v)$ should be the minimum spanning tree.
+\\
+\\\textbf{(c)}
+\\
+\\The algorithm will fail, consider the following example:
+\\\includegraphics[scale=1]{p4c.png}
+\\if we apply the divide-and-conquer algorithm, the minimum weight will be $1+4+2=7$, however, the correct minimum spanning tree should have the minimum weight should have $1+2+3=6$. The problem with the divide-and-conquer algorithm is that we cannot guarantee the algorithm will find the optimal way to divide the nodes each time.
+\section*{Problem 5}
+\textbf{(a)}
+\\
+\\\textbf{Algorithm:}
+\\
+\\Since there is only one negative cost edge $(u,v)$, we can first make its cost to be 0. Then we can use Dijkstra's algorithm to compute the shortest path from source $s$ to vertex $u$ and $v$. Let's say the shortest path from $s$ to $u$ is $d_{1}$, and shortest path from $s$ to $v$ is $d_{2}$, then what we do is to compare $d_{1}+(u,v)$ (the original negative one) and $d_{2}$, the smaller one is the shortest path from source $s$ to $v$.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape getPath} (\textit{G,w,s,u,v})
+\\\indent 1 \quad $cost \leftarrow w(u,v)$
+\\\indent 2 \quad $w(u,v) \leftarrow 0$
+\\\indent 3 \quad $Dijkstra(G,w,s)$
+\\\indent 4 \quad return $min(d[u]+cost,d[v])$
+\\
+\\\textbf{Analysis:}
+\\
+\\\textit{Time Complexity}. The algorithm has the same time complexity as Dijkstra's algorithm, which is $O_{}{(Elog_{}{V})}$ if we use $heap$ as the data structure.
+\\
+\\\textbf{(b)}
+\\
+\\\textbf{Algorithm:}
+\\
+\\We see each currency is a node and each way to exchange between currencies is an edge, the edges are weighted by the exchange rate, which are values stored in the table $T$. So we can build a weighted directed graph $G=G(V,E)$, $V$ is the set of currencies and the edges $(v_{i},v_{j}),(v_{i},u_{j})$ are ways to do the exchange.
+\\
+\\The goal is to find a sequence such that the product of the weights are larger than 1, we do the following transformations to make the problem solvable with the algorithm we learned in class:
+\\$T[i_{1},i_{2}]*T[i_{2},i_{3}]...T[i_{k-1},i_{k}]*T[i_{k},i_{1}]>1$
+\\
+\\$\dfrac{1}{T[i_{1},i_{2}]}*\dfrac{1}{T[i_{2},i_{3}]}...\dfrac{1}{T[i_{k-1},i_{k}]}*\dfrac{1}{T[i_{k},i_{1}]}<1$
+\\
+\\$log_{}{\dfrac{1}{T[i_{1},i_{2}]}}+log_{}{\dfrac{1}{T[i_{2},i_{3}]}}...log_{}{\dfrac{1}{T[i_{k-1},i_{k}]}}+log_{}{\dfrac{1}{T[i_{k},i_{1}]}}<0$
+\\so we can update the values in table $T$ with $w(v_{i},v_{j})=-log_{}{(T[i_{i},i_{j}])}$, the goal is then changed to find a negative cycle in graph $G$.
+\\
+\\We know that {\scshape Bellman-ford} algorithm can detect whether there is a negative cycle in the graph, so we will use it on graph $G$, if a negative cycle is detected, then we will use a recursion to get the sequence.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape getSequence} (\textit{T})
+\\\indent 1 \quad $G,w,s \leftarrow$ construct a graph from table $T$
+\\\indent 2 \quad if {\scshape Bellman-Ford} (\textit{G,w,s}) is $true$ then
+\\\indent 3 \qquad return $false$
+\\\indent 4 \quad for each edge $(v_{i},v_{j}) \in G.E$ do
+\\\indent 5 \qquad if $v_{j}.d>v_{i}.d+w(v_{i},v_{j})$ then
+\\\indent 6 \qquad \quad $sequence \leftarrow empty$
+\\\indent 7 \qquad \quad {\scshape getList} (\textit{$G,v_{i},v_{i}.\pi$})
+\\\indent 8 \quad return $sequence$
+\\
+\\{\scshape getList} (\textit{G,s,v,sequence})
+\\\indent 1 \quad if $v==s$ then
+\\\indent 2 \qquad $sequence \leftarrow$ add $s$
+\\\indent 3 \quad else if $v.\pi ==$ NIL then
+\\\indent 4 \qquad return
+\\\indent 5 \quad else {\scshape getList} (\textit{G,s,$v.\pi$,sequence})
+\\\indent 6 \qquad $sequence \leftarrow$ add $v$
+\\
+\\\textbf{Analysis:}
+\\
+\\\textit{Time Complexity}. The first thing we need to do is to construct the graph from table $T$, this step needs to go over all the pairs of currencies which takes $O_{}{(n^{2})}$ time. The {\scshape Bellman-ford} algorithm takes $O_{}{(VE)}$ time where $|V|=n,|E|=n^{2}$, so it takes $O_{}{(n^{3})}$ time. If the negative cycle is detected, we will go over the edges and get the sequence, the lines 4-7 take $O_{}{(n^{2})}$ time in the worst case to check all the edges, so in total, the algorithm proposed has running time of $O_{}{(n^{3})}$.
+\end{document} 

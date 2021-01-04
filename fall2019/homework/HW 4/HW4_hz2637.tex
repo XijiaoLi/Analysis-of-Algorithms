@@ -1,0 +1,230 @@
+\documentclass[twoside]{homework}
+\usepackage{graphicx}
+\studname{Hongmin Zhu (hz2637)}
+\studmail{hz2637@columbia.edu}
+\coursename{CSOR W4231: Analysis of Algorithms (sec. 001)}
+\hwNo{4}
+
+\begin{document}
+\maketitle
+
+\section*{Problem 1}
+\textbf{Algorithm:}
+\\
+\\We apply \textit{greedy} approach to this problem. First, sort the given set of points $X$ in ascending order, and then the algorithm starts to select the smallest point $x$ and builds an unit-length interval $[x_{s}, x_{s}+1]$ from it. All the points inside $[x_{s}, x_{s}+1]$ will be removed from $X$. The algorithm continues to select the smallest point and build an interval repeatedly until the set $X$ is empty.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape Intervals} (\textit{X})
+\\\indent 1 \quad $S \leftarrow emptySet$
+\\\indent 2 \quad $sort(X)$
+\\\indent 3 \quad while $X$ is not empty do
+\\\indent 4 \qquad $x_{s} \leftarrow X[0]$
+\\\indent 5 \qquad $interval \leftarrow$ all points inside $[x_{s}, x_{s}+1]$
+\\\indent 6 \qquad add $interval$ to $S$
+\\\indent 7 \qquad remove all points inside $[x_{s}, x_{s}+1]$ from $X$
+\\\indent 8 \quad return $S$
+\\
+\\\textbf{Analysis:}
+\\
+\\\textit{Correctness}. The set $X$ is sorted in ascending order. We know $[x_{1}, x_{1}+1]$ is the interval starting from the smallest point in $X$, suppose the optimal set $S_{opt}$ contains an interval $[p, p+1]$ that covers point $x_{1}$, so $p \leq x_{1} \leq x_{1}+1$. As $x_{x}$ is the leftmost point of $X$, we know that there are no points in $\big[p, x_{1}\big)$. Therefore, we can simply replace $[p, p+1]$ with $[x_{1}, x_{1}+1]$, which means $[x_{1}, x_{1}+1]$ itself is an optimal interval.
+\\
+\\The optimal solution for sub-problem can be built by solving the problem with all points in $[x_{1}, x_{1}+1]$ removed from $X$. The \textit{greedy} approach solves the sub-problem by an identical way and yields the optimal solution $S^{\prime}_{opt}$, so overall we get solution $S^{\prime} \cup [x_{1}, x_{1}+1]$, which is the optimal one for the entire problem.
+\\
+\\\textit{Time Complexity}. \textit{sort} takes $O_{}{(nlog_{}{n})}$ time, and the \textit{while-loop} goes over every element in $X$, so it takes $O_{}{(n)}$ time. The overall running time is $O_{}{(nlog_{}{n})}$.
+\section*{Problem 2}
+\textbf{(a)}
+\\(i) counterexample:
+\\$a_{i}:(1,9),(7,11), (10,15)$
+\\$w_{i}:10,\qquad20,\qquad15$
+\\if we select an activity of largest weight, we would choose $Q:{(7, 11)}$ which gives us the total weight $w_{}{(Q)}=20$. However, the maximum weight should be $w_{}{(Q)}=25$ with $Q:{(1,9),(10,15)}$.
+\\
+\\(ii) counterexample:
+\\$a_{i}:(1,9),(7,11), (10,15)$
+\\$w_{i}:10,\qquad20,\qquad5$
+\\if we select an activity of earliest finishing time, we would choose $Q:{(1,9),(10,15)}$ which gives us the total weight $w_{}{(Q)}=15$. However, the maximum weight should be $w_{}{(Q)}=20$ with $Q:{(7, 11)}$.
+\\
+\\\textbf{(b)}
+\\From question (a), we can see that \textit{greedy} solution can fail with either considering the largest weight or the earliest finishing time. We can then consider using \textit{dynamic programming}.
+\\
+\\The activities are already sorted by finishing time, suppose \textit{compatible(i)} means the largest index $j<i$ such that activity $j$ is compatible with $i$. So we have the following two cases:
+\\
+\\(1) Case 1: we select current activity $i$:
+\\-then we can't choose activities from ${compatible{(i)}+1, compatible{(i)}+2,...,i-1}$ as they are all incompatible with current activity $i$
+\\-the optimal solution must include optimal solution to the problem consisting of compatible activities $1,2,3...,compatible(i)$.
+\\
+\\(2) Case 2: we don't select current activity $i$:
+\\-then the optimal solution must include optimal solution to the problem consisting of compatible activities $1,2,3...,i-1$.
+\\
+\\So, we have:
+\begin{equation*}
+	W(i)=\left\{
+	\begin{array}{rcl}
+		0 & & {i=0}\\
+		\min_{}{(W(compatible(i))+w_{i},W(i-1))} & & {otherwise}\\
+	\end{array} \right.
+\end{equation*}
+\\
+\\
+\\\textbf{(c)}
+\\\textbf{Algorithm:}
+\\Use \textit{Bottom-Up dynamic programming} to solve this problem. Create an array to store the optimal solution, i.e. the largest total weight of each sub-problem and use a \textit{for-loop} to calculate the current optimal solution.
+\\
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape findCompatible(\textit{A}, \textit{i})}
+\\\indent 1 \quad if $i == 1$
+\\\indent 2 \qquad if $A[i].start \geq A[0].finish$
+\\\indent 3 \qquad \quad return 0
+\\\indent 4 \qquad return -1
+\\\indent 5 \quad $l \leftarrow 0$
+\\\indent 6 \quad $r \leftarrow i-1$
+\\\indent 7 \quad while $l \leq r$ do
+\\\indent 8 \qquad $mid \leftarrow (l+r)/2$
+\\\indent 9 \qquad if $A[i].start == A[mid].finish$
+\\\indent 10\qquad \quad return $mid$
+\\\indent 11\qquad else if $A[i].start < A[mid].finish$
+\\\indent 12\qquad \quad $r \leftarrow mid-1$
+\\\indent 13\qquad else
+\\\indent 14\qquad \quad $l \leftarrow mid+1$
+\\\indent 15\quad return $r$
+\\
+\\{\scshape maxWeight} (\textit{A})
+\\\indent 1 \quad $sort(A)$ by finishing time
+\\\indent 2 \quad $optimal[0] \leftarrow 0$
+\\\indent 3 \quad for $i \leftarrow 1$ to $n$
+\\\indent 4 \qquad $compatible(i) \leftarrow$ {\scshape findCompatible(\textit{A}, \textit{i})}
+\\\indent 5 \qquad $optimal[i] \leftarrow max_{}{(optimal[compatible[i]]+A[i].w, optimal[i-1])}$
+\\\indent 6 \quad return $optimal[n]$
+\\
+\\{\scshape findSubset} (\textit{optimal}, \textit{A}, \textit{result}, \textit{i})
+\\\indent 1 \quad if $i==0$
+\\\indent 2 \qquad return
+\\\indent 3 \quad if $optimal[compatible[i]]+A[i].w >  optimal[i-1]$
+\\\indent 4 \qquad $result.add(A[i])$
+\\\indent 5 \qquad {\scshape findSubset}(\textit{optimal}, \textit{A}, \textit{result}, \textit{compatible(i)})
+\\\indent 6 \quad else
+\\\indent 7 \qquad {\scshape findSubset}(\textit{optimal}, \textit{A}, \textit{result}, \textit{i-1})
+\\
+\\
+\\\textbf{Analysis:}
+\\
+\\The algorithm uses \textit{dynamic programming} to solve this optimization problem. That input activities are sorted by the finishing time and the function {\scshape maxWeight} will use a \textit{for-loop} to go through the input. For current activity $i$, we use {\scshape findCompatible} to get the largest index $j<i$ such that activity $j$ is compatible with $i$ and consider two cases:
+\\
+\\(1) Case 1: we select current activity $i$:
+\\-then we can't choose activities from ${compatible{(i)}+1, compatible{(i)}+2,...,i-1}$ as they are all incompatible with current activity $i$
+\\-the optimal solution must include optimal solution to the problem consisting of compatible activities $1,2,3...,compatible(i)$.
+\\
+\\(2) Case 2: we don't select current activity $i$:
+\\-then the optimal solution must include optimal solution to the problem consisting of compatible activities $1,2,3...,i-1$.
+\\
+\\and we take the maximum of these two cases,
+\begin{equation*}
+	W(i)=\left\{
+	\begin{array}{rcl}
+		0 & & {i=0}\\
+		\min_{}{(W(compatible(i))+w_{i},W(i-1))} & & {otherwise}\\
+	\end{array} \right.
+\end{equation*}
+so that the overall optimal solution consists of optimal solutions for sub-problems, which makes this \textit{dynamic programming} algorithm correct. The function {\scshape findSubset} outputs the subset.
+\\
+\\\textit{Running time}. The function {\scshape findCompatible} uses \textit{binary search} to find the index, so the time complexity is $O_{}{(log_{}{(n)})}$. The function {\scshape maxWeight} sorts the input in $O_{}{(nlog_{}{(n)})}$ time, and the \textit{for-loop} takes $O_{}{(nlog_{}{(n)})}$, so the overall running time is $O_{}{(log_{}{(n)})}$. The recursive calls in {\scshape findSubset} outputs the subset, so its running time is $O_{}{(n)}$.
+\section*{Problem 3}
+\textbf{(a)}
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape computeDistance(\textit{A}, \textit{B}, \textit{idx}, \textit{distance}, \textit{f})}
+\\\indent 1 \quad if $(idx > n)$
+\\\indent 2 \qquad $cost \leftarrow 0$
+\\\indent 3 \qquad for $i \leftarrow 1$ to $n$
+\\\indent 4 \qquad \quad $cost \leftarrow cost+abs(A[i]-B[f[i]])$
+\\\indent 5 \qquad $distance \leftarrow min(distance, cost)$
+\\\indent 6 \quad else
+\\\indent 7 \qquad for $j \leftarrow 1$ to $m$
+\\\indent 9 \qquad \quad if $(j \geq f[idx-1])$
+\\\indent 10\qquad \qquad $f[idx] \leftarrow j$
+\\\indent 11\qquad \qquad $computeDistance(A,B,idx+1,distance,f)$
+\\
+\\\textbf{(b)}
+\\For $C(i,j)$, the problem we should consider is there are two integers $a_{i}, b_{j}$, whether we match these two or not, all the previous integers are already be perfectly matched. So for $a_{i}, b_{j}$, there are two cases:
+\\
+\\(1) we match $a_{i}, b_{j}$, then we can know from the definition of $f$ that $a_{i-1}$ can also choose to match $b_{j}$, so the sub-problem here is $C(i-1,j)$, $C(i,j) = |a_{i} - b_{j}| + C(i-1, j)$.
+\\(2) we don't match $a_{i}, b_{j}$, therefore, $a_{k}, k<i$ cannot match $b_{j}$ either, the sub-problem here is $C(i, j-1)$, $C(i,j) = C(i, j-1)$.
+\\
+\\So $C(i,j)=\min{(|a_{i} - b_{j}| + C(i-1, j), C(i, j-1))}$.
+\\
+\\\textbf{(c)}
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape computeDistance(\textit{A}, \textit{B}}
+\\\indent 1 \quad $grid \leftarrow n*m$ matrix
+\\\indent 2 \quad $grid[1][1] \leftarrow |A[1] - B[1]|$
+\\\indent 3 \quad for $col \leftarrow 2$ to $m$ do
+\\\indent 4 \qquad $grid[1][col] \leftarrow min(|A[0]-B[col]|, grid[0][col-1])$
+\\\indent 5 \quad for $row \leftarrow 2$ to $n$ do
+\\\indent 6 \qquad $grid[row][1] \leftarrow grid[row-1][1]+|grid[row][1]|$
+\\\indent 7 \quad for $row \leftarrow 3$ to $n$ do
+\\\indent 8 \qquad for $col \leftarrow 3$ to $m$ do
+\\\indent 9 \qquad \quad $grid[row][col] \leftarrow$
+\\\indent \qquad \qquad \qquad \qquad $min(|A[row]-B[col]|+grid[row-1][col],grid[row][col-1])$
+\\\indent 10\quad return $grid[n][m]$
+\\
+\\\textbf{Analysis:}
+\\
+\\The algorithm uses \textit{dynamic programming} to calculate the distance, the initialization takes $O_{}{(n+m)}$ time, and the calculation takes two \textit{for-loop} in $O_{}{(nm)}$ time, so the total running time is $O_{}{(nm)}$.
+\section*{Problem 4}
+\textbf{(1)}
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape search(\textit{A}, \textit{target})}
+\\\indent 1 \quad for $i \leftarrow 0$ to $k-1$ do
+\\\indent 2 \qquad $pos \leftarrow binarysearch(A_{i}, target)$
+\\\indent 3 \qquad if $pos \neq 0$ do
+\\\indent 4 \qquad \quad return $(i, pos)$
+\\\indent 5 \quad return $None$
+\\
+\\\textbf{Analysis:}
+\\
+\\We linearly go through each array $A_{i}$, and use \textit{binary search} to search it, if current array contains target value, return index, otherwise we continue to search next array. So the worst case is we need to binary search all the array $A_{i}$.
+\\
+\\\textit{Running time.} We know that array $A_{i}$ has length of $2^{i}$, binary searching this array will take $O_{}{(log_{}{(2^{i})})}$ time, which is $O_{}{(i)}$ time. And $i$ ranges from $0$ to $k-1$, and $k=\lceil log_{}{(n+1)} \rceil$, so in total, the worst case running time is $\sum_{i=0}^{k-1} O_{}{(i)}$, which is $O_{}{(log^{2}_{}{(n)})}$.
+\\
+\\\textbf{(2)}
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape insert(\textit{A}, \textit{target})}
+\\\indent 1 \quad $B[0] \leftarrow target$
+\\\indent 2 \quad for $i \leftarrow 0$ to $k-1$ do
+\\\indent 3 \qquad if $A[i]$ is full do
+\\\indent 4 \qquad \quad $B[i+1] \leftarrow combine(A[i],B[i])$
+\\\indent 5 \qquad \quad empty $A[i]$
+\\\indent 6 \qquad else do
+\\\indent 7 \qquad \quad $A[i] \leftarrow B[i]$
+\\\indent 8 \qquad \quad return
+\\\indent 9 \quad $A[k] \leftarrow B[k]$
+\\
+\\\textbf{Analysis:}
+\\
+\\To insert a new element, the algorithm creates a new Array $A_{0}$ with size of 1. If the original $A_{0}$ of the data structure is already full, then we combine these two $A_[{0}$ into one array $A_{1}$. If the original $A_{1}$ of the data structure is already full, we combine two $A_{1}$ into array $A_{2}$. The algorithm repeats this procedure until the combination is no longer needed. We know that combine two sorted array into a bigger array can be done linearly in the total length of lists, so assume the algorithm combines arrays $A_{0},A_{1},...,A_{m-1}$ into $A_{m}$, the running time is $O_{}{(2^{m})}$, the worst case is the algorithm needs to combine all the arrays $A_{0},A_{1},...,A_{k-1}$ into $A_{k}$, so the worst case running time is $\sum_{i=0}^{k-1}2^{i}=O_{}{(2^{k})}=O_{}{(n)}$.
+\\
+\\\textit{Amortized time}. From the binary representation of $n, <n_{k-1},n_{k-2},...,n_{0}>$, we can know that every time the algorithm combine two arrays into one bigger array, $n_{i}$ flips. To be specific, $n_{0}$ flips every time, $n_{1}$ flips every $2th$ time,...,$n_{k-1}$ flips every $2^{k}th$ time. So for total running time for $x$ insert operation is: $T\leq\sum_{i=0}^{k-1}\lfloor\dfrac{x}{2^{i}}\rfloor2^{i}\leq xk=xO_{}{(k)}=xO_{}{(log_{}{n})}$, so the amortized running time for each operation is $xO_{}{(log_{}{n})}/x=O_{}{(log_{}{n})}$.
+\\
+\\\textbf{(3)}
+\\\textbf{Pseudo-code:}
+\\
+\\{\scshape delete(\textit{A}, \textit{target})}
+\\\indent 1 \quad for $i \leftarrow 0$ to $k-1$ do
+\\\indent 2 \qquad if $A[i]$ is not empty do
+\\\indent 3 \qquad \quad $A_{s} \leftarrow A[i]$
+\\\indent 4 \qquad \quad break
+\\\indent 5 \quad $i,pos \leftarrow$ {\scshape search(\textit{A}, \textit{target})}
+\\\indent 6 \quad remove the target of $A[i][pos]$
+\\\indent 7 \quad get a value from $A_{s}$ and insert this value to the right place of $A[i]$
+\\\indent 8 \quad break down $A_{s}$ to several smaller arrays
+\\
+\\\textbf{Analysis:}
+\\
+\\The algorithm finds the first array $A_{s}$ that is not empty with smallest index, which takes $O_{}{(k)}=O_{}{(log_{}{n})}$ time in worst case, then it uses {\scshape search} to find the right array with target value, which takes $O_{}{(log^{2}_{}{(n)})}$ in worst case. We delete the target value, and swap a value from $S$ and insert it to the right place, since we need to loop over this array to find the right place, the worst case is that this array is $A_{k-1}$, which takes $O_{}{(k)}=O_{}{(log_{}{n})}$ time with binary search, finally we break down array $A_{s}$ to several smaller arrays with time of $O_{}{(2^{s})}$ which is $O_{}{(log_{}{n})}$ time in worst case. So in the worst case, the running time is $O_{}{(log^{2}_{}{(n)})} + 3O_{}{(log_{}{n})}$, which is $O_{}{(log^{2}_{}{(n)})}$.
+\\
+\\\textit{Amortized time}. \textit{empty.}
+\end{document} 
